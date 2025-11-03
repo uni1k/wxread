@@ -16,7 +16,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)-8s - 
 
 # 加密盐及其它默认值
 KEY = "3c5c8717f3daf09iop3423zafeqoi"
-COOKIE_DATA = {"rq": "%2Fweb%2Fbook%2Fread","ql": True}
+COOKIE_DATA = {"rq": "%2Fweb%2Fbook%2Fread"}
 READ_URL = "https://weread.qq.com/web/book/read"
 RENEW_URL = "https://weread.qq.com/web/login/renewal"
 FIX_SYNCKEY_URL = "https://weread.qq.com/web/book/chapterInfos"
@@ -91,16 +91,22 @@ while index <= READ_NUM:
     logging.info(f"📕 response: {resData}")
 
     if 'succ' in resData:
+        # 检查是否有 synckey
         if 'synckey' in resData:
             lastTime = thisTime
             index += 1
             time.sleep(30)
             logging.info(f"✅ 阅读成功，阅读进度：{(index - 1) * 0.5} 分钟")
         else:
+            # succ为真但没有synckey，调用chapterInfos接口刷新
             logging.warning("❌ 无synckey, 尝试修复...")
             fix_no_synckey()
+    elif 'errCode' in resData and resData['errCode'] == -2012:
+        # errCode为-2012时，需要刷新cookie的wr_skey
+        logging.warning("❌ errCode为-2012, 尝试刷新cookie...")
+        refresh_cookie()
     else:
-        logging.warning("❌ cookie 已过期，尝试刷新...")
+        logging.warning("❌ cookie 已过期或其他错误，尝试刷新...")
         refresh_cookie()
 
 logging.info("🎉 阅读脚本已完成！")
