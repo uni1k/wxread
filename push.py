@@ -90,7 +90,7 @@ class PushNotification:
 
     def push_serverChan(self, content, spt):
         """ServerChan消息推送"""
-        attempts = 5
+        attempts = 3  # 减少重试次数
         url = self.server_chan_url.format(spt)
         
        
@@ -107,7 +107,7 @@ class PushNotification:
                         "desp": content
                     }).encode('utf-8'),
                     headers=self.headers,
-                    timeout=10
+                    timeout=15  # 增加超时时间
                 )
                 response.raise_for_status()
                 logger.info("✅ ServerChan响应: %s", response.text)
@@ -115,7 +115,7 @@ class PushNotification:
             except requests.exceptions.RequestException as e:
                 logger.error("❌ ServerChan推送失败: %s", e)
                 if attempt < attempts - 1:
-                    sleep_time = random.randint(180, 360)
+                    sleep_time = random.randint(60, 120)  # 减少等待时间
                     logger.info("将在 %d 秒后重试...", sleep_time)
                     time.sleep(sleep_time)
 
