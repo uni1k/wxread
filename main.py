@@ -123,7 +123,11 @@ def refresh_cookie():
 
 refresh_cookie()
 index = 1
-lastTime = int(time.time()) - 30
+# 累计阅读时间（秒）
+total_read_time = 0
+# 设置初始lastTime为当前时间减去一个30-45秒之间的随机值
+random_interval = random.randint(30, 45)
+lastTime = int(time.time()) - random_interval
 logging.info(f"⏱️ 一共需要阅读 {READ_NUM} 次...")
 
 while index <= READ_NUM:
@@ -161,8 +165,12 @@ while index <= READ_NUM:
         if 'synckey' in resData:
             lastTime = thisTime
             index += 1
-            time.sleep(30)
-            logging.info(f"✅ 阅读成功，阅读进度：{(index - 1) * 0.5} 分钟")
+            # 随机休眠30-45秒
+            sleep_time = random.randint(30, 45)
+            time.sleep(sleep_time)
+            # 累计实际阅读时间
+            total_read_time += sleep_time
+            logging.info(f"✅ 阅读成功，累计阅读：{total_read_time // 60}分{total_read_time % 60}秒，本次休眠{sleep_time}秒")
         else:
             # succ为真但没有synckey，调用chapterInfos接口刷新
             logging.warning("❌ 无synckey, 尝试修复...")
@@ -179,4 +187,4 @@ logging.info("🎉 阅读脚本已完成！")
 
 if PUSH_METHOD not in (None, ''):
     logging.info("⏱️ 开始推送...")
-    push(f"🎉 微信读书自动阅读完成！\n⏱️ 阅读时长：{(index - 1) * 0.5}分钟。", PUSH_METHOD)
+    push(f"🎉 微信读书自动阅读完成！\n⏱️ 阅读时长：{total_read_time // 60}分{total_read_time % 60}秒。", PUSH_METHOD)
