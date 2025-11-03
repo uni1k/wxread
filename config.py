@@ -40,7 +40,7 @@ headers = {
     'accept': 'application/json, text/plain, */*',
     'accept-language': 'zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6,ko;q=0.5',
     'baggage': 'sentry-environment=production,sentry-release=dev-1730698697208,sentry-public_key=ed67ed71f7804a038e898ba54bd66e44,sentry-trace_id=1ff5a0725f8841088b42f97109c45862',
-    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0',
+    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36 Edg/141.0.0.0',
 }
 
 
@@ -63,20 +63,20 @@ chapter = [
 建议保留区域|默认读三体，其它书籍自行测试时间是否增加
 """
 data = {
-    "appId": "wb182564874603h266381671",
-    "b": "ce032b305a9bc1ce0b0dd2a",
-    "c": "7f632b502707f6ffaa6bf2e",
-    "ci": 27,
-    "co": 389,
-    "sm": "19聚会《三体》网友的聚会地点是一处僻静",
-    "pr": 74,
+    "appId": "wb182564874663h1259517900",
+    "b": "f1e328e072710bfaf1e87e9",
+    "c": "69a32ca02cf69adc1e109af",
+    "ci": 18,
+    "co": 2413,
+    "sm": "在朱元璋手下，有着很多天才将领，他们的军",
+    "pr": 2,
     "rt": 15,
     "ts": 1744264311434,
     "rn": 466,
     "sg": "2b2ec618394b99deea35104168b86381da9f8946d4bc234e062fa320155409fb",
     "ct": 1744264311,
-    "ps": "4ee326507a65a465g015fae",
-    "pc": "aab32e207a65a466g010615",
+    "ps": "644327407a80db13g016d97",
+    "pc": "baf328d07a80db12g012891",
     "s": "36cc0815"
 }
 
