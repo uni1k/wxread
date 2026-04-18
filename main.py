@@ -165,8 +165,24 @@ while index <= READ_NUM:
         if 'synckey' in resData:
             lastTime = thisTime
             index += 1
-            # 随机休眠30-45秒
-            sleep_time = random.randint(30, 45)
+            # ── 真实阅读时间模型 ────────────────────────────────────────────
+            # 1. 正态分布休眠：均值37秒，标准差8秒，夹在20~90秒之间
+            sleep_time = int(max(20, min(90, random.gauss(37, 8))))
+
+            # 2. 时段感知：凌晨0~7点模拟用户疲劳，阅读节奏放慢1.5倍
+            current_hour = time.localtime().tm_hour
+            if 0 <= current_hour < 7:
+                sleep_time = int(sleep_time * 1.5)
+                logging.info(f"🌙 凌晨时段，阅读节奏放慢，调整休眠至 {sleep_time} 秒")
+
+            # 3. 偶发长停顿：5% 概率模拟翻页思考（120~300秒）
+            if random.random() < 0.05:
+                long_pause = random.randint(120, 300)
+                logging.info(f"💭 模拟翻页思考，额外停顿 {long_pause} 秒...")
+                time.sleep(long_pause)
+                total_read_time += long_pause
+            # ────────────────────────────────────────────────────────────────
+
             time.sleep(sleep_time)
             # 累计实际阅读时间
             total_read_time += sleep_time

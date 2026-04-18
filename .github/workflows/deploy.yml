@@ -22,6 +22,8 @@ jobs:
   deploy:
     runs-on: ubuntu-22.04
     environment: AutoRead  # 指定环境
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true  # 强制使用 Node.js 24 运行 actions，避免 Node.js 20 弃用警告
 
     steps:
 
@@ -62,6 +64,8 @@ jobs:
     if: ${{ always() }}
     needs: deploy
     runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true  # 强制使用 Node.js 24 运行 actions，避免 Node.js 20 弃用警告
     permissions:
       actions: write
     steps:
