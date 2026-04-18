@@ -44,41 +44,82 @@ headers = {
 }
 
 
-# 书籍
-book = [
-    "36d322f07186022636daa5e","6f932ec05dd9eb6f96f14b9","43f3229071984b9343f04a4","d7732ea0813ab7d58g0184b8",
-    "3d03298058a9443d052d409","4fc328a0729350754fc56d4","a743220058a92aa746632c0","140329d0716ce81f140468e",
-    "1d9321c0718ff5e11d9afe8","ff132750727dc0f6ff1f7b5","e8532a40719c4eb7e851cbe","9b13257072562b5c9b1c8d6"
-]
+# 真实阅读快照列表
+# 每条记录包含 b/c/ci/co/sm/ps/pc 七个强关联字段，来源于真实抓包，内部完全一致
+# 新增书籍时，请确保同一条记录的所有字段来自同一次真实阅读请求
+reading_sessions = [
+    # 《明朝那些事》
+    {"b":"f1e328e072710bfaf1e87e9","c":"10632e20319a1068c6e48be","ci":23,"co":12726,"sm":"具体的事务要处理，就整天到处转悠，不是去","ps":"aa832f307a96bc70g0114a3","pc":"95a32f707a96bc6fg015ae7"},
+    {"b":"f1e328e072710bfaf1e87e9","c":"10632e20319a1068c6e48be","ci":23,"co":14889,"sm":"总而言之，言官很执著，很较真，当然，也很","ps":"aa832f307a96bc70g0114a3","pc":"95a32f707a96bc6fg015ae7"},
+    {"b":"f1e328e072710bfaf1e87e9","c":"10632e20319a1068c6e48be","ci":23,"co":17562,"sm":"就是国初三都，其中在朱元璋的老家凤阳营造","ps":"aa832f307a96bc70g0114a3","pc":"95a32f707a96bc6fg015ae7"},
+    {"b":"f1e328e072710bfaf1e87e9","c":"17d322b0319b17d63b160d0","ci":24,"co":379,"sm":"第十七章胡惟庸案件正是因为胡惟庸对朱元璋","ps":"aa832f307a96bc70g0114a3","pc":"95a32f707a96bc6fg015ae7"},
 
-# 章节
-chapter = [
-    "ecc32f3013eccbc87e4b62e","a87322c014a87ff679a21ea","e4d32d5015e4da3b7fbb1fa","16732dc0161679091c5aeb1",
-    "8f132430178f14e45fce0f7","c9f326d018c9f0f895fb5e4","45c322601945c48cce2e120","d3d322001ad3d9446802347",
-    "65132ca01b6512bd43d90e3","c20321001cc20ad4d76f5ae","c51323901dc51ce410c121b","aab325601eaab3238922e53",
-    "9bf32f301f9bf31c7ff0a60","c7432af0210c74d97b01b1c","70e32fb021170efdf2eca12","6f4322302126f4922f45dec"
+    # 《剑来》
+    {"b": "dee32e1071db086fdeef491", "c": "9243256033ee9246444dd3e", "ci": 12, "co": 33364,
+     "sm": "空。宁姚站在他身边。陈平安最后一次劝说道",
+     "ps": "9c332ac07a96ba04g010693", "pc": "5a332c107a96ba03g014d5f"},
+    {"b": "dee32e1071db086fdeef491", "c": "9243256033ee9246444dd3e", "ci": 12, "co": 37845,
+     "sm": "茶。宋集薪坐在左边客人椅子上，单手把玩一",
+     "ps": "9c332ac07a96ba04g010693", "pc": "5a332c107a96ba03g014d5f"},
+    {"b": "dee32e1071db086fdeef491", "c": "d7332cd033efd7322ed7215", "ci": 13, "co": 374,
+     "sm": "第九章天行健陈平安这些天经常往福禄街、桃",
+     "ps": "9c332ac07a96ba04g010693", "pc": "5a332c107a96ba03g014d5f"},
+    {"b": "dee32e1071db086fdeef491", "c": "d7332cd033efd7322ed7215", "ci": 13, "co": 10274,
+     "sm": "影响，而他对于小镇的地理形势，完全不熟悉",
+     "ps": "9c332ac07a96ba04g010693", "pc": "5a332c107a96ba03g014d5f"},
+    {"b": "dee32e1071db086fdeef491", "c": "d7332cd033efd7322ed7215", "ci": 13, "co": 14200,
+     "sm": "宋集薪脸色不悦。不远处的李家大宅，呼喝声",
+     "ps": "9c332ac07a96ba04g010693", "pc": "5a332c107a96ba03g014d5f"},
+
+    # 《认知觉醒》
+    {"b": "6a732ce07201202c6a7b30a", "c": "a6832360236a684eceeee20", "ci": 10, "co": 378,
+     "sm": "第四章专注力——情绪和智慧的交叉地带第一",
+     "ps": "a29322207a96ba1ag012028", "pc": "fb432b407a96ba19g017fab"},
+    {"b": "6a732ce07201202c6a7b30a", "c": "a6832360236a684eceeee20", "ci": 10, "co": 9724,
+     "sm": "以前女儿练钢琴时，她妈妈会要求她把新学的",
+     "ps": "a29322207a96ba1ag012028", "pc": "fb432b407a96ba19g017fab"},
+    {"b": "6a732ce07201202c6a7b30a", "c": "b5332110237b53b3a3d68d2", "ci": 11, "co": 358,
+     "sm": "第五章学习力——学习不是一味地努力第一节",
+     "ps": "a29322207a96ba1ag012028", "pc": "fb432b407a96ba19g017fab"},
+    {"b": "6a732ce07201202c6a7b30a", "c": "b5332110237b53b3a3d68d2", "ci": 11, "co": 13665,
+     "sm": "角，最终能否获取深度学习的能力，只能靠你",
+     "ps": "a29322207a96ba1ag012028", "pc": "fb432b407a96ba19g017fab"},
+
+    # 《被讨厌的勇气》
+    {"b": "8b9329607186dc198b9bdab", "c": "006328902a8006f52e91302", "ci": 11, "co": 397,
+     "sm": "不为人知的心理学“第三巨头”青年：刚才您",
+     "ps": "1dd325907a96ba2ag0132aa", "pc": "a2932fc07a96ba2ag010f2b"},
+    {"b": "8b9329607186dc198b9bdab", "c": "006328902a8006f52e91302", "ci": 11, "co": 20291,
+     "sm": "哲人：是的，人生中思考或行为的倾向。青年",
+     "ps": "1dd325907a96ba2ag0132aa", "pc": "a2932fc07a96ba2ag010f2b"},
+    {"b": "8b9329607186dc198b9bdab", "c": "006328902a8006f52e91302", "ci": 11, "co": 21516,
+     "sm": "哲人：当然，并不是有意地选择了“这样的我",
+     "ps": "1dd325907a96ba2ag0132aa", "pc": "a2932fc07a96ba2ag010f2b"},
+    {"b": "8b9329607186dc198b9bdab", "c": "36332b302a9363663881960", "ci": 12, "co": 427,
+     "sm": "[插图]第二夜一切烦恼都来自人际关系青年",
+     "ps": "1dd325907a96ba2ag0132aa", "pc": "a2932fc07a96ba2ag010f2b"},
 ]
 
 """
 建议保留区域|默认读三体，其它书籍自行测试时间是否增加
 """
 data = {
-    "appId": "wb182564874663h1259517900",
-    "b": "f1e328e072710bfaf1e87e9",
-    "c": "69a32ca02cf69adc1e109af",
-    "ci": 18,
-    "co": 2413,
-    "sm": "在朱元璋手下，有着很多天才将领，他们的军",
-    "pr": 2,
-    "rt": 15,
-    "ts": 1744264311434,
-    "rn": 466,
-    "sg": "2b2ec618394b99deea35104168b86381da9f8946d4bc234e062fa320155409fb",
-    "ct": 1744264311,
-    "ps": "644327407a80db13g016d97",
-    "pc": "baf328d07a80db12g012891",
-    "s": "36cc0815"
-}
+    "appId":"wb182564874663h1426868428",
+    "b":"f1e328e072710bfaf1e87e9",
+    "c":"17d322b0319b17d63b160d0",
+    "ci":24,
+    "co":379,
+    "sm":"第十七章胡惟庸案件正是因为胡惟庸对朱元璋",
+    "pr":5,
+    "rt":20,
+    "ts":1776508136879,
+    "rn":354,
+    "sg":"49ef76ab92db7fc8f637d2f3509f26b551fb7dd1d15fcd411b40005eaa46a2b4",
+    "ct":1776508136,
+    "ps":"aa832f307a96bc70g0114a3",
+    "pc":"95a32f707a96bc6fg015ae7",
+    "s":"b8e247b3"
+    }
 
 
 def convert(curl_command):
@@ -92,24 +133,24 @@ def convert(curl_command):
 
     # 提取 cookies
     cookies = {}
-    
+
     # 从 -H 'Cookie: xxx' 提取
-    cookie_header = next((v for k, v in headers_temp.items() 
+    cookie_header = next((v for k, v in headers_temp.items()
                          if k.lower() == 'cookie'), '')
-    
+
     # 从 -b 'xxx' 提取
     cookie_b = re.search(r"-b '([^']+)'", curl_command)
     cookie_string = cookie_b.group(1) if cookie_b else cookie_header
-    
+
     # 解析 cookie 字符串
     if cookie_string:
         for cookie in cookie_string.split('; '):
             if '=' in cookie:
                 key, value = cookie.split('=', 1)
                 cookies[key.strip()] = value.strip()
-    
+
     # 移除 headers 中的 Cookie/cookie
-    headers = {k: v for k, v in headers_temp.items() 
+    headers = {k: v for k, v in headers_temp.items()
               if k.lower() != 'cookie'}
 
     return headers, cookies

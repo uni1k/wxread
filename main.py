@@ -8,7 +8,7 @@ import hashlib
 import requests
 import urllib.parse
 from push import push
-from config import data, headers, cookies, READ_NUM, PUSH_METHOD, book, chapter
+from config import data, headers, cookies, READ_NUM, PUSH_METHOD, reading_sessions
 
 # 配置日志格式
 logger = logging.getLogger(__name__)
@@ -121,6 +121,11 @@ def refresh_cookie():
         push(ERROR_CODE, PUSH_METHOD)
         raise Exception(ERROR_CODE)
 
+# 随机启动延迟 0~15 分钟，消除固定时间点触发的规律性特征
+startup_delay = random.randint(0, 900)
+logging.info(f"⏳ 随机启动延迟 {startup_delay // 60} 分 {startup_delay % 60} 秒...")
+time.sleep(startup_delay)
+
 refresh_cookie()
 index = 1
 # 累计阅读时间（秒）
@@ -130,10 +135,17 @@ random_interval = random.randint(30, 45)
 lastTime = int(time.time()) - random_interval
 logging.info(f"⏱️ 一共需要阅读 {READ_NUM} 次...")
 
+# 整次运行只"读"一本书：按书ID分组后随机选定，在该书的快照中随机切换章节/位置
+_book_ids = list({s['b'] for s in reading_sessions})
+_chosen_book = random.choice(_book_ids)
+book_sessions = [s for s in reading_sessions if s['b'] == _chosen_book]
+logging.info(f"📚 本次选定书籍（ID: {_chosen_book}），共 {len(book_sessions)} 个阅读快照")
+
 while index <= READ_NUM:
     data.pop('s', None)  # 使用pop的默认值避免KeyError
-    data['b'] = random.choice(book)
-    data['c'] = random.choice(chapter)
+    # 在当前书的快照中随机选位置，保证 b/c/ci/co/sm/ps/pc 七个字段内部一致
+    session_snap = random.choice(book_sessions)
+    data.update({k: session_snap[k] for k in ('b', 'c', 'ci', 'co', 'sm', 'ps', 'pc')})
     thisTime = int(time.time())
     data['ct'] = thisTime
     data['rt'] = thisTime - lastTime
