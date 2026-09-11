@@ -157,3 +157,23 @@ def convert(curl_command):
 
 
 headers, cookies = convert(curl_str) if curl_str else (headers, cookies)
+
+# ── 启动前置校验：配置缺失时立即报错退出，避免跑完延迟/续签重试才发现问题 ──
+if not curl_str or 'wr_skey' not in cookies:
+    raise SystemExit(
+        "❌ 配置错误：环境变量 WXREAD_CURL_BASH 未设置或不含 wr_skey cookie。\n"
+        "   请从浏览器抓包复制完整的 curl 命令（含 Cookie 头）后重试。"
+    )
+
+_PUSH_TOKENS = {
+    'pushplus': PUSHPLUS_TOKEN,
+    'telegram': TELEGRAM_BOT_TOKEN,
+    'wxpusher': WXPUSHER_SPT,
+    'serverchan': SERVERCHAN_SPT,
+}
+if PUSH_METHOD and not _PUSH_TOKENS.get(str(PUSH_METHOD).strip().lower()):
+    raise SystemExit(
+        f"❌ 配置错误：PUSH_METHOD={PUSH_METHOD} 但对应 token 未设置。\n"
+        "   支持：pushplus→PUSHPLUS_TOKEN, telegram→TELEGRAM_BOT_TOKEN, "
+        "wxpusher→WXPUSHER_SPT, serverchan→SERVERCHAN_SPT"
+    )

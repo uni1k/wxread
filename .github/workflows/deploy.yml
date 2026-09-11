@@ -17,6 +17,7 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-22.04
+    timeout-minutes: 150  # 正常约80分钟，1.5倍余量兜底防挂死烧满6小时上限
     environment: AutoRead  # 指定环境
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true  # 强制使用 Node.js 24 运行 actions，避免 Node.js 20 弃用警告

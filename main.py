@@ -78,8 +78,8 @@ def fix_no_synckey():
         response = session.post(FIX_SYNCKEY_URL, headers=headers, cookies=cookies,
                                 data=json.dumps({"bookIds":["3300060341"]}, separators=(',', ':')),
                                 timeout=30)
+        # 只记状态码不打响应正文：正文是完整章节列表（数千字符），会淹没日志
         logging.info(f"FIX_SYNCKEY_URL response status: {response.status_code}")
-        logging.info(f"FIX_SYNCKEY_URL response: {response.text}")
     except requests.exceptions.RequestException as e:
         logging.error(f"请求FIX_SYNCKEY_URL时发生异常: {e}")
     except Exception as e:
@@ -105,6 +105,11 @@ def post_with_retry(url, **kwargs):
 refresh_print = setup_logging()
 
 
+def progress_text():
+    """当前进度文案，附加到失败推送中便于判断丢失量"""
+    return f"（进度: {index - 1}/{READ_NUM} 次，累计真实阅读 {total_read_time // 60}分{total_read_time % 60}秒）"
+
+
 def refresh_cookie():
     """刷新cookie：多轮重试容忍续签接口瞬时故障，全部失败才推送并终止"""
     for round_no in range(1, len(REFRESH_RETRY_DELAYS) + 2):
@@ -121,7 +126,7 @@ def refresh_cookie():
             time.sleep(delay)
     ERROR_CODE = "❌ 无法获取新密钥或者WXREAD_CURL_BASH配置有误，终止运行。"
     logging.error(ERROR_CODE)
-    push(ERROR_CODE, PUSH_METHOD, is_success=False)
+    push(ERROR_CODE + progress_text(), PUSH_METHOD, is_success=False)
     raise Exception(ERROR_CODE)
 
 # 随机启动延迟 0~15 分钟，消除固定时间点触发的规律性特征
@@ -169,7 +174,7 @@ while index <= READ_NUM:
         # 网络级异常已退避重试多次仍失败，说明中断时间超过容忍窗口，明确失败并终止
         ERROR_CODE = f"❌ 网络持续异常（已退避重试{len(NETWORK_RETRY_DELAYS)}次），终止运行: {e}"
         logging.error(ERROR_CODE)
-        push(ERROR_CODE, PUSH_METHOD, is_success=False)
+        push(ERROR_CODE + progress_text(), PUSH_METHOD, is_success=False)
         raise Exception(ERROR_CODE)
     except Exception as e:
         logging.error(f"处理READ_URL响应时发生异常: {e}")
