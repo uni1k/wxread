@@ -7,11 +7,8 @@ import hashlib
 import requests
 import urllib.parse
 from push import push
+from log_utils import setup_logging
 from config import data, headers, cookies, READ_NUM, PUSH_METHOD, reading_sessions
-
-# 配置日志格式
-logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)-8s - %(message)s')
 
 # 加密盐及其它默认值
 KEY = "3c5c8717f3daf09iop3423zafeqoi"
@@ -104,6 +101,10 @@ def post_with_retry(url, **kwargs):
         raise e
 
 
+# 初始化日志与单行刷新式进度显示（移植自上游 log_utils）
+refresh_print = setup_logging()
+
+
 def refresh_cookie():
     """刷新cookie：多轮重试容忍续签接口瞬时故障，全部失败才推送并终止"""
     for round_no in range(1, len(REFRESH_RETRY_DELAYS) + 2):
@@ -156,6 +157,7 @@ while index <= READ_NUM:
     data['sg'] = hashlib.sha256(f"{data['ts']}{data['rn']}{KEY}".encode()).hexdigest()
     data['s'] = cal_hash(encode_data(data))
 
+    refresh_print(f"阅读进度: 第 {index}/{READ_NUM} 次，累计真实阅读 {total_read_time // 60}分{total_read_time % 60}秒")
     logging.info(f"⏱️ 尝试第 {index} 次阅读...")
     logging.info(f"📕 data: {data}")
     try:
@@ -201,6 +203,7 @@ while index <= READ_NUM:
             time.sleep(sleep_time)
             # 累计实际阅读时间
             total_read_time += sleep_time
+            refresh_print(f"阅读进度: 第 {index}/{READ_NUM} 次，累计真实阅读 {total_read_time // 60}分{total_read_time % 60}秒")
             logging.info(f"✅ 阅读成功，累计阅读：{total_read_time // 60}分{total_read_time % 60}秒，本次休眠{sleep_time}秒")
         else:
             # succ为真但没有synckey，调用chapterInfos接口刷新
