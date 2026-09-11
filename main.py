@@ -28,6 +28,11 @@ FIX_SYNCKEY_URL = "https://weread.qq.com/web/book/chapterInfos"
 # 添加全局requests session以保持连接
 session = requests.Session()
 
+# 网络级异常的退避重试间隔：瞬时抖动通常在1分钟内恢复，总计可容忍约7.5分钟中断
+NETWORK_RETRY_DELAYS = (30, 60, 120, 240)
+# 续签失败后的整轮重试间隔（每轮内部已依次尝试3种payload变体）
+REFRESH_RETRY_DELAYS = (60, 120)
+
 
 def encode_data(data):
     """数据编码"""
@@ -84,18 +89,39 @@ def fix_no_synckey():
         logging.error(f"处理FIX_SYNCKEY_URL响应时发生异常: {e}")
 
 
+def post_with_retry(url, **kwargs):
+    """发起POST请求，网络级异常按间隔退避重试，重试耗尽后抛出最后一个异常"""
+    try:
+        return session.post(url, **kwargs)
+    except requests.exceptions.RequestException as e:
+        for delay in NETWORK_RETRY_DELAYS:
+            logging.warning(f"🌐 网络异常: {e}，{delay}秒后重试...")
+            time.sleep(delay)
+            try:
+                return session.post(url, **kwargs)
+            except requests.exceptions.RequestException as exc:
+                e = exc
+        raise e
+
+
 def refresh_cookie():
-    logging.info(f"🍪 刷新cookie")
-    new_skey = get_wr_skey()
-    if new_skey:
-        cookies['wr_skey'] = new_skey
-        logging.info(f"✅ 密钥刷新成功，新密钥：{new_skey[:2]}***")
-        logging.info(f"🔄 重新本次阅读。")
-    else:
-        ERROR_CODE = "❌ 无法获取新密钥或者WXREAD_CURL_BASH配置有误，终止运行。"
-        logging.error(ERROR_CODE)
-        push(ERROR_CODE, PUSH_METHOD, is_success=False)
-        raise Exception(ERROR_CODE)
+    """刷新cookie：多轮重试容忍续签接口瞬时故障，全部失败才推送并终止"""
+    for round_no in range(1, len(REFRESH_RETRY_DELAYS) + 2):
+        logging.info(f"🍪 刷新cookie（第 {round_no} 轮）")
+        new_skey = get_wr_skey()
+        if new_skey:
+            cookies['wr_skey'] = new_skey
+            logging.info(f"✅ 密钥刷新成功，新密钥：{new_skey[:2]}***")
+            logging.info(f"🔄 重新本次阅读。")
+            return
+        if round_no <= len(REFRESH_RETRY_DELAYS):
+            delay = REFRESH_RETRY_DELAYS[round_no - 1]
+            logging.warning(f"本轮续签失败，{delay}秒后重试...")
+            time.sleep(delay)
+    ERROR_CODE = "❌ 无法获取新密钥或者WXREAD_CURL_BASH配置有误，终止运行。"
+    logging.error(ERROR_CODE)
+    push(ERROR_CODE, PUSH_METHOD, is_success=False)
+    raise Exception(ERROR_CODE)
 
 # 随机启动延迟 0~15 分钟，消除固定时间点触发的规律性特征
 startup_delay = random.randint(0, 900)
@@ -133,15 +159,16 @@ while index <= READ_NUM:
     logging.info(f"⏱️ 尝试第 {index} 次阅读...")
     logging.info(f"📕 data: {data}")
     try:
-        response = session.post(READ_URL, headers=headers, cookies=cookies, 
-                               data=json.dumps(data, separators=(',', ':')), timeout=30)
+        response = post_with_retry(READ_URL, headers=headers, cookies=cookies,
+                                   data=json.dumps(data, separators=(',', ':')), timeout=30)
         resData = response.json()
         logging.info(f"📕 response: {resData}")
     except requests.exceptions.RequestException as e:
-        logging.error(f"请求READ_URL时发生异常: {e}")
-        logging.warning("❌ 网络请求异常，尝试刷新cookie...")
-        refresh_cookie()
-        continue
+        # 网络级异常已退避重试多次仍失败，说明中断时间超过容忍窗口，明确失败并终止
+        ERROR_CODE = f"❌ 网络持续异常（已退避重试{len(NETWORK_RETRY_DELAYS)}次），终止运行: {e}"
+        logging.error(ERROR_CODE)
+        push(ERROR_CODE, PUSH_METHOD, is_success=False)
+        raise Exception(ERROR_CODE)
     except Exception as e:
         logging.error(f"处理READ_URL响应时发生异常: {e}")
         logging.warning("❌ 响应处理异常，尝试刷新cookie...")
