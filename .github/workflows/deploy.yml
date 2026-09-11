@@ -24,9 +24,12 @@ jobs:
 
     steps:
 
-    - name: Set DNS to Google's DNS
+    - name: Set DNS to Cloudflare & Google
       run: |
-        echo "nameserver 8.8.8.8" | sudo tee /etc/resolv.conf
+        # 双任播网络互为后备：1.1.1.1 优先，8.8.8.8 兜底；
+        # 均在 runner 所在区域有就近节点，避免国内 DNS 的跨洋解析错配
+        echo "nameserver 1.1.1.1" | sudo tee /etc/resolv.conf
+        echo "nameserver 8.8.8.8" | sudo tee -a /etc/resolv.conf
         echo "nameserver 8.8.4.4" | sudo tee -a /etc/resolv.conf
 
     - name: Checkout repository
