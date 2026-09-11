@@ -107,7 +107,8 @@ refresh_print = setup_logging()
 
 def progress_text():
     """当前进度文案，附加到失败推送中便于判断丢失量"""
-    return f"（进度: {index - 1}/{READ_NUM} 次，累计真实阅读 {total_read_time // 60}分{total_read_time % 60}秒）"
+    return (f"（进度: {index - 1}/{READ_NUM} 次，累计真实阅读 {total_read_time // 60}分{total_read_time % 60}秒，"
+            f"本次已续签{refresh_count}次）")
 
 
 def refresh_cookie():
@@ -138,6 +139,10 @@ refresh_cookie()
 index = 1
 # 累计阅读时间（秒）
 total_read_time = 0
+# 运行统计：供结束推送汇总
+refresh_count = 0        # cookie续签次数
+synckey_fix_count = 0    # 无synckey修复次数
+run_start_time = time.time()
 # 设置初始lastTime为当前时间减去一个30-45秒之间的随机值
 random_interval = random.randint(30, 45)
 lastTime = int(time.time()) - random_interval
@@ -207,17 +212,28 @@ while index <= READ_NUM:
         else:
             # succ为真但没有synckey，调用chapterInfos接口刷新
             logging.warning("❌ 无synckey, 尝试修复...")
+            synckey_fix_count += 1
             fix_no_synckey()
     elif 'errCode' in resData and resData['errCode'] == -2012:
         # errCode为-2012时，需要刷新cookie的wr_skey
         logging.warning("❌ errCode为-2012, 尝试刷新cookie...")
+        refresh_count += 1
         refresh_cookie()
     else:
         logging.warning("❌ cookie 已过期或其他错误，尝试刷新...")
+        refresh_count += 1
         refresh_cookie()
 
 logging.info("🎉 阅读脚本已完成！")
 
 if PUSH_METHOD not in (None, ''):
     logging.info("⏱️ 开始推送...")
-    push(f"🎉 微信读书自动阅读完成！\n⏱️ 阅读时长：{total_read_time // 60}分{total_read_time % 60}秒。", PUSH_METHOD, is_success=True)
+    run_minutes = int((time.time() - run_start_time) // 60)
+    stats_lines = [
+        "🎉 微信读书自动阅读完成！",
+        f"⏱️ 阅读时长：{total_read_time // 60}分{total_read_time % 60}秒。",
+        f"📖 阅读次数：{index - 1}/{READ_NUM} 次",
+        f"⌛ 任务耗时：{run_minutes} 分钟",
+        f"🔄 Cookie续签：{refresh_count} 次 ｜ 🛠 synckey修复：{synckey_fix_count} 次",
+    ]
+    push("\n".join(stats_lines), PUSH_METHOD, is_success=True)
