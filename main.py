@@ -1,5 +1,4 @@
 # main.py 主逻辑：包括字段拼接、模拟请求
-import re
 import json
 import time
 import random
@@ -16,7 +15,12 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)-8s - 
 
 # 加密盐及其它默认值
 KEY = "3c5c8717f3daf09iop3423zafeqoi"
-COOKIE_DATA = {"rq": "%2Fweb%2Fbook%2Fread"}
+# 续签接口的多种payload变体，依次尝试以兼容接口变更（移植自上游 fix: wr_skey）
+COOKIE_DATA_VARIANTS = [
+    {"rq": "%2Fweb%2Fbook%2Fread", "ql": False},
+    {"rq": "%2Fweb%2Fbook%2Fread", "ql": True},
+    {"rq": "%2Fweb%2Fbook%2Fread"},
+]
 READ_URL = "https://weread.qq.com/web/book/read"
 RENEW_URL = "https://weread.qq.com/web/login/renewal"
 FIX_SYNCKEY_URL = "https://weread.qq.com/web/book/chapterInfos"
@@ -46,50 +50,25 @@ def cal_hash(input_string):
 
 
 def get_wr_skey():
-    """刷新cookie密钥"""
-    try:
-        response = session.post(RENEW_URL, headers=headers, cookies=cookies,
-                                data=json.dumps(COOKIE_DATA, separators=(',', ':')), 
-                                timeout=30)
-        logging.info(f"RENEW_URL response status: {response.status_code}")
-        logging.info(f"RENEW_URL response headers: {response.headers}")
-        logging.info(f"RENEW_URL response text: {response.text}")
-        
-        # 检查响应状态码
-        if response.status_code != 200:
-            logging.error(f"RENEW_URL请求失败，状态码: {response.status_code}")
-            return None
-            
-        # 尝试解析JSON响应
+    """刷新cookie密钥：依次尝试多种payload变体，从响应cookies中提取wr_skey"""
+    for cookie_data in COOKIE_DATA_VARIANTS:
         try:
-            res_data = response.json()
-            logging.info(f"RENEW_URL response JSON: {res_data}")
-        except:
-            logging.warning("RENEW_URL响应不是有效的JSON格式")
-        
-        # 从Set-Cookie头中提取wr_skey
-        set_cookie_header = response.headers.get('Set-Cookie', '')
-        logging.info(f"Set-Cookie header: {set_cookie_header}")
-        
-        for cookie in set_cookie_header.split(','):
-            if "wr_skey" in cookie:
-                # 提取wr_skey值
-                import re
-                match = re.search(r'wr_skey=([^;]+)', cookie)
-                if match:
-                    skey = match.group(1)[:8]  # 取前8位
-                    logging.info(f"成功提取到wr_skey: {skey}")
-                    return skey
-        
-        # 如果在Set-Cookie中没找到，尝试在响应体中查找
-        logging.warning("在Set-Cookie中未找到wr_skey，尝试在响应体中查找")
-        return None
-    except requests.exceptions.RequestException as e:
-        logging.error(f"请求RENEW_URL时发生异常: {e}")
-        return None
-    except Exception as e:
-        logging.error(f"处理RENEW_URL响应时发生异常: {e}")
-        return None
+            response = session.post(RENEW_URL, headers=headers, cookies=cookies,
+                                    data=json.dumps(cookie_data, separators=(',', ':')),
+                                    timeout=30)
+            if response.status_code != 200:
+                logging.warning(f"RENEW_URL请求失败（payload={cookie_data}），状态码: {response.status_code}")
+                continue
+
+            if 'wr_skey' in response.cookies:
+                skey = response.cookies['wr_skey'][:8]  # 取前8位
+                logging.info(f"✅ 成功提取到wr_skey: {skey[:2]}***")
+                return skey
+
+            logging.warning(f"RENEW_URL响应中无wr_skey（payload={cookie_data}）")
+        except requests.exceptions.RequestException as e:
+            logging.warning(f"RENEW_URL请求异常（payload={cookie_data}）: {e}")
+    return None
 
 
 def fix_no_synckey():
@@ -110,15 +89,12 @@ def refresh_cookie():
     new_skey = get_wr_skey()
     if new_skey:
         cookies['wr_skey'] = new_skey
-        logging.info(f"✅ 密钥刷新成功，新密钥：{new_skey}")
+        logging.info(f"✅ 密钥刷新成功，新密钥：{new_skey[:2]}***")
         logging.info(f"🔄 重新本次阅读。")
     else:
-        # 添加更多信息帮助调试
-        logging.error(f"原始cookies: {cookies}")
-        logging.error(f"请求headers: {headers}")
         ERROR_CODE = "❌ 无法获取新密钥或者WXREAD_CURL_BASH配置有误，终止运行。"
         logging.error(ERROR_CODE)
-        push(ERROR_CODE, PUSH_METHOD)
+        push(ERROR_CODE, PUSH_METHOD, is_success=False)
         raise Exception(ERROR_CODE)
 
 # 随机启动延迟 0~15 分钟，消除固定时间点触发的规律性特征
@@ -215,4 +191,4 @@ logging.info("🎉 阅读脚本已完成！")
 
 if PUSH_METHOD not in (None, ''):
     logging.info("⏱️ 开始推送...")
-    push(f"🎉 微信读书自动阅读完成！\n⏱️ 阅读时长：{total_read_time // 60}分{total_read_time % 60}秒。", PUSH_METHOD)
+    push(f"🎉 微信读书自动阅读完成！\n⏱️ 阅读时长：{total_read_time // 60}分{total_read_time % 60}秒。", PUSH_METHOD, is_success=True)
