@@ -6,8 +6,10 @@ import random
 import time
 
 import requests
+from urllib.parse import quote
 
 from config import (
+    BARK_URL,
     PUSHPLUS_TOKEN,
     SERVERCHAN_SPT,
     TELEGRAM_BOT_TOKEN,
@@ -24,6 +26,8 @@ class PushNotification:
         self.telegram_url = "https://api.telegram.org/bot{}/sendMessage"
         self.server_chan_url = "https://sctapi.ftqq.com/{}.send"
         self.wxpusher_simple_url = "https://wxpusher.zjiecode.com/api/send/message/{}/{}"
+        # BARK_URL 示例：官方 https://api.day.app/{key} 或自建 https://your.host/{key}
+        self.bark_url = BARK_URL
         self.headers = {"Content-Type": "application/json"}
         # 从环境变量获取代理设置
         self.proxies = {
@@ -121,6 +125,27 @@ class PushNotification:
         return False
 
 
+    def push_bark(self, content, bark_url, is_success):
+        """Bark消息推送（iOS），bark_url 含 key，如 https://api.day.app/xxxxxxxx"""
+        attempts = 5
+        title = f"微信阅读-{'成功' if is_success else '失败'}"
+        url = f"{bark_url.rstrip('/')}/{quote(title, safe='')}/{quote(content, safe='')}?group=wxread"
+
+        for attempt in range(attempts):
+            try:
+                response = requests.get(url, timeout=10)
+                response.raise_for_status()
+                logger.info("✅ Bark响应: %s", response.text)
+                return True
+            except requests.exceptions.RequestException as exc:
+                logger.error("❌ Bark推送失败: %s", exc)
+                if attempt < attempts - 1:
+                    sleep_time = random.randint(180, 360)
+                    logger.info("将在 %d 秒后重试...", sleep_time)
+                    time.sleep(sleep_time)
+        return False
+
+
 def push(content, method, is_success=True):
     """统一推送接口，支持 PushPlus、Telegram、WxPusher 和 ServerChan"""
     notifier = PushNotification()
@@ -139,6 +164,11 @@ def push(content, method, is_success=True):
         return notifier.push_wxpusher(content, WXPUSHER_SPT)
     if method == "serverchan":
         return notifier.push_serverChan(content, SERVERCHAN_SPT, is_success)
+    if method == "bark":
+        if not BARK_URL:
+            logger.warning("BARK_URL 未配置，跳过 Bark 推送。")
+            return False
+        return notifier.push_bark(content, BARK_URL, is_success)
 
     logger.warning("无效的通知渠道 '%s'，已跳过推送。支持：pushplus、telegram、wxpusher、serverchan", method)
     return False

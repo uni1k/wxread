@@ -20,6 +20,8 @@ TELEGRAM_CHAT_ID = "" or os.getenv("TELEGRAM_CHAT_ID")
 WXPUSHER_SPT = "" or os.getenv("WXPUSHER_SPT")
 # SeverChan推送时需填
 SERVERCHAN_SPT = "" or os.getenv("SERVERCHAN_SPT")
+# bark推送时需填（iOS Bark App），如 https://api.day.app/你的Key 或自建服务器 https://your.host/你的Key
+BARK_URL = "" or os.getenv("BARK_URL")
 
 
 # read接口的bash命令，本地部署时可对应替换headers、cookies
@@ -170,10 +172,11 @@ _PUSH_TOKENS = {
     'telegram': TELEGRAM_BOT_TOKEN,
     'wxpusher': WXPUSHER_SPT,
     'serverchan': SERVERCHAN_SPT,
+    'bark': BARK_URL,
 }
 if PUSH_METHOD and not _PUSH_TOKENS.get(str(PUSH_METHOD).strip().lower()):
     raise SystemExit(
         f"❌ 配置错误：PUSH_METHOD={PUSH_METHOD} 但对应 token 未设置。\n"
         "   支持：pushplus→PUSHPLUS_TOKEN, telegram→TELEGRAM_BOT_TOKEN, "
-        "wxpusher→WXPUSHER_SPT, serverchan→SERVERCHAN_SPT"
+        "wxpusher→WXPUSHER_SPT, serverchan→SERVERCHAN_SPT, bark→BARK_URL"
     )
