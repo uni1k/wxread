@@ -124,7 +124,7 @@ def refresh_cookie():
     raise Exception(ERROR_CODE)
 
 # 随机启动延迟 0~15 分钟，消除固定时间点触发的规律性特征
-startup_delay = random.randint(0, 900)
+startup_delay = random.randint(0, 180)  # 0~3分钟，cron已错开整点，无需更长延迟
 logging.info(f"⏳ 随机启动延迟 {startup_delay // 60} 分 {startup_delay % 60} 秒...")
 time.sleep(startup_delay)
 
